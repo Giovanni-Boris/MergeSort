@@ -9,7 +9,7 @@
 int arr[LENGTH];
 void combine_array( int , int );
 void printMatriz(int arr[],int,int);
-void* merge_sort(void*a);
+void* merge_sort(void*);
 typedef struct sizes {
     int left;
     int right;
@@ -97,11 +97,16 @@ void printMatriz(int arr[],int left, int right){
   printf("\n");
 }
 int main() {
+  //para que no sea el mismo arreglo aleatorio
   srand(time(NULL));
+
   //datos de prueba  
   for (int i = 0; i < LENGTH; i ++) {
     arr[i] = rand() % 9; 
   }
+  // para almacenar el tiempo de ejecución del código
+  double time_spent = 0.0;
+  clock_t begin = clock();
   SIZES n;
   n.left = 0;
   n.right = LENGTH -1;
@@ -111,9 +116,14 @@ int main() {
   pthread_create(&tid, NULL, merge_sort, &n);
 
   pthread_join(tid, NULL);
+  clock_t end = clock();
+  time_spent += (double)(end - begin) / CLOCKS_PER_SEC;
 
+ 
   printf("Resultado: \n");
   printMatriz(arr,0,9);
+
+  printf("El tiempo is %f seconds\n", time_spent);
 
   return 0;
 }
