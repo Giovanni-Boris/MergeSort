@@ -35,8 +35,11 @@ void* merge_sort(void *a) {
     return ;
   //Primer thread
   pthread_create(&tid1, NULL, merge_sort, &t1);
+  printf("Thread t1 left: %d right:%d\n",t1.left,t1.right);
   //creating second thread
   pthread_create(&tid2, NULL, merge_sort, &t2);
+  printf("Thread t2 left: %d right:%d\n",t2.left,t2.right);
+
   //joining the threads
   pthread_join(tid1, NULL);
   pthread_join(tid2, NULL);
