@@ -5,45 +5,49 @@
 #define LENGTH 10
 #define NUM_THREADS 3
 //threads por tamaño
-const int NUMEROS_POR_THREAD = LENGTH / NUM_THREADS;
-const int RESIDUO = LENGTH % NUM_THREADS;
-int arr[LENGTH];
 
-void merge_sort(int,int);
-void combine_array( int, int , int );
-void* thread_function(void* );
-void combine_pthreads( int , int );
+int arr[LENGTH];
+void combine_array( int , int );
 void printMatriz(int arr[],int,int);
-void *thread_function(void* arg){
-  int thread_id = (int)arg;
-  printf("id %d\n", thread_id);
-  //inicio
-  int left = thread_id * (NUMEROS_POR_THREAD);
-  //fin
-  int right = (thread_id + 1) * (NUMEROS_POR_THREAD) - 1;
-  //puede haber residuos no siempre es exacto
-  if (thread_id == NUM_THREADS - 1) {
-    right += RESIDUO;
-  }
-  if (left < right) {
-    printf("Thread: %d left: %d right: %d\n",thread_id,left,right);
-    merge_sort(left, right);
-    printMatriz(arr,left,right);
-  }
-  return NULL;
-}
+void* merge_sort(void*a);
+typedef struct sizes {
+    int left;
+    int right;
+} SIZES;
+
+
 //divide en posiciones
-void merge_sort(int left, int right) {
-  if (left < right) {
-    int middle = left + (right - left) / 2;
-    merge_sort(left, middle);
-    merge_sort(middle + 1, right);
-    combine_array(left, middle, right);
-  }
+void* merge_sort(void *a) {
+  SIZES *p = (SIZES *)a;
+  SIZES t1, t2;
+  int mid = (p->left+p->right)/2;
+  pthread_t tid1, tid2;
+  int retu;
+
+  t1.left = p->left;
+  t1.right = mid;
+
+  t2.left = mid+1;
+  t2.right = p->right;
+
+  if (p->left >= p->right)
+    return ;
+  //Primer thread
+  pthread_create(&tid1, NULL, merge_sort, &t1);
+  //creating second thread
+  pthread_create(&tid2, NULL, merge_sort, &t2);
+  //joining the threads
+  pthread_join(tid1, NULL);
+  pthread_join(tid2, NULL);
+
+  combine_array(p->left, p->right);
+  pthread_exit(NULL);
+
 }
-void combine_array( int left, int middle, int right) {
+void combine_array( int left, int right) {
   int i = 0;
   int j = 0;
+  int middle = (left+right)/2;
   int left_length = middle - left + 1;
   int right_length = right - middle;
   int left_array[left_length];
@@ -85,21 +89,7 @@ void combine_array( int left, int middle, int right) {
     j ++;
   }
 }
-//combina los threads
-void combine_pthreads( int threads, int aggregation) {
-  for(int i = 0; i < threads; i = i + 2) {
-    int left = i * (NUMEROS_POR_THREAD * aggregation);
-    int right = ((i + 2) * NUMEROS_POR_THREAD * aggregation) - 1;
-    int middle = left + (right - left) / 2;
-    if (right >= LENGTH) {
-      right = LENGTH - 1;
-    }
-    combine_array(left, middle, right);
-  }
-  if (threads / 2 >= 1) {
-    combine_pthreads(threads / 2, aggregation * 2);
-  }
-}
+
 void printMatriz(int arr[],int left, int right){
   for(int i=left; i <= right; i++){
     printf(" %d ",arr[i]);
@@ -112,16 +102,16 @@ int main() {
   for (int i = 0; i < LENGTH; i ++) {
     arr[i] = rand() % 9; 
   }
-  printMatriz(arr,0,9); 
-  pthread_t threads[NUM_THREADS];
-  for (int i = 0; i < NUM_THREADS; i ++) {
-    pthread_create(&threads[i], NULL, thread_function, (void *)i);
+  SIZES n;
+  n.left = 0;
+  n.right = LENGTH -1;
+  pthread_t tid;
+  printMatriz(arr,0,9);
 
-  }
-  for(long i = 0; i < NUM_THREADS; i++) {
-    pthread_join(threads[i], NULL);
-  }
-  combine_pthreads(NUM_THREADS, 1);
+  pthread_create(&tid, NULL, merge_sort, &n);
+
+  pthread_join(tid, NULL);
+
   printf("Resultado: \n");
   printMatriz(arr,0,9);
 
