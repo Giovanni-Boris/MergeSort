@@ -14,20 +14,20 @@ typedef struct sizes {
     int left;
     int right;
 } SIZES;
-
+pthread_mutex_t mutex;
 
 //divide en posiciones
 void* merge_sort(void *a) {
   SIZES *p = (SIZES *)a;
   SIZES t1, t2;
-  int mid = (p->left+p->right)/2;
+  int middle = (p->left+p->right)/2;
   pthread_t tid1, tid2;
   int retu;
 
   t1.left = p->left;
-  t1.right = mid;
+  t1.right = middle;
 
-  t2.left = mid+1;
+  t2.left = middle+1;
   t2.right = p->right;
 
   if (p->left >= p->right)
@@ -65,6 +65,8 @@ void combine_array( int left, int right) {
   int k = 0;
   i = 0;
   j = 0;
+  //mutex
+  pthread_mutex_lock(&mutex);
   //copiar los valores en orden ascendente 
   while (i < left_length && j < right_length) {
     if (left_array[i] <= right_array[j]) {
@@ -88,6 +90,7 @@ void combine_array( int left, int right) {
     k ++;
     j ++;
   }
+  pthread_mutex_unlock(&mutex);
 }
 
 void printMatriz(int arr[],int left, int right){
@@ -112,7 +115,9 @@ int main() {
   n.right = LENGTH -1;
   pthread_t tid;
   printMatriz(arr,0,9);
-
+  //Mutex
+  pthread_mutex_init(&mutex, NULL);
+  //hread general
   pthread_create(&tid, NULL, merge_sort, &n);
 
   pthread_join(tid, NULL);
