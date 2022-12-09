@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <sys/time.h>
+#include <semaphore.h>
 #define LENGTH 10
 #define NUM_THREADS 3
 //threads por tamaño
@@ -14,7 +15,7 @@ typedef struct sizes {
     int left;
     int right;
 } SIZES;
-pthread_mutex_t mutex;
+sem_t mutex;
 
 //divide en posiciones
 void* merge_sort(void *a) {
@@ -66,7 +67,7 @@ void combine_array( int left, int right) {
   i = 0;
   j = 0;
   //mutex
-  pthread_mutex_lock(&mutex);
+  sem_wait(&mutex);  
   //copiar los valores en orden ascendente 
   while (i < left_length && j < right_length) {
     if (left_array[i] <= right_array[j]) {
@@ -90,7 +91,7 @@ void combine_array( int left, int right) {
     k ++;
     j ++;
   }
-  pthread_mutex_unlock(&mutex);
+  sem_post(&mutex);
 }
 
 void printMatriz(int arr[],int left, int right){
@@ -116,8 +117,8 @@ int main() {
   pthread_t tid;
   printMatriz(arr,0,9);
   //Mutex
-  pthread_mutex_init(&mutex, NULL);
   //hread general
+  sem_init(&mutex,0,1);
   pthread_create(&tid, NULL, merge_sort, &n);
 
   pthread_join(tid, NULL);
