@@ -119,6 +119,6 @@ int main(){
 
     time_spent += ((float)end - (float)begin) / CLOCKS_PER_SEC;
     validateSort();
-    printf("Time: %.5f\n", time_spent);
+    printf("Sorted! --> Time: %.5f\n", time_spent);
     return 0;
 }
